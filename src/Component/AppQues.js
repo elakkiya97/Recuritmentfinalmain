@@ -107,32 +107,32 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
   const handleSubmit4 = async (e) => {
     e.preventDefault();
     const errors = {};
-
+  
     if (!formData.uploadedFile) {
       errors.cvFile = "Please upload your CV file.";
     }
-    if (!Object.values(appqueData).every((value) => value)) {
+    if (!Object.values(appqueData).every((value) => value) || !selectedDate1) {
       errors.common = "Please fill in all fields.";
     }
     if (!Object.values(app1queData).every((value) => value)) {
       errors.common = "Please fill in all fields.";
     }
-
+  
     if (Object.keys(errors).length > 0) {
       notification.error({
         description: errors.common || errors.cvFile,
       });
       return;
     }
-
+  
     try {
       console.log("Submitting form with data:", {
         ...appqueData,
         startDate: selectedDate1,
       });
-
+  
       console.log("Uploaded CV file:", formData.uploadedFile);
-
+  
       await axios.post(
         `${API_BASE_URL}/api/JobApplication/Job`,
         {
@@ -145,7 +145,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
           },
         }
       );
-
+  
       const fileData = {
         fileName: formData.uploadedFile.name,
         filePath: formData.uploadedFile,
@@ -154,7 +154,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
         status: true,
         positionId: positionUserDTO.id,
       };
-
+  
       await axios.post(
         `${API_BASE_URL}/api/FileUploadResponse/upload`,
         fileData,
@@ -164,12 +164,13 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
           },
         }
       );
-
+  
       handleNext();
     } catch (error) {
       console.error("Error:", error);
     }
   };
+  
 
   const stepTitles = [
     "Personal Details",
@@ -233,9 +234,9 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
                   message: "Please enter the referee phone no.",
                 },
                 {
-                  pattern: /^\+\d{1,9}$/,
+                  pattern: /^\+\d{11,15}$/,
                   message:
-                    "Phone number must start with + and be followed by up to 9 digits.",
+                    "Phone number must be valid.",
                 },
               ]}
               labelCol={{ span: 24 }}
@@ -281,38 +282,40 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
           </Col>
 
           <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  Desired Location
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="desiredLocation"
-              rules={[
-                {
-                  message: "Please select the desired location.",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <Select
-                value={appqueData.desiredLocation}
-                onChange={(value) =>
-                  handleAppqueDataChange("desiredLocation", value)
-                }
-                placeholder="Desired Location"
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().includes(input.toLowerCase())
-                }
-              >
-                <Option value="OnSite">OnSite</Option>
-                <Option value="Remote">Remote</Option>
-              </Select>
-            </Form.Item>
+          <Form.Item
+  label={
+    <span>
+      Desired Location
+      <span className="required-asterisk">*</span>
+    </span>
+  }
+  name="desiredLocation"
+  rules={[
+    {
+      required: true,
+      message: "Please select the desired location.",
+    },
+  ]}
+  labelCol={{ span: 24 }}
+  wrapperCol={{ span: 24 }}
+>
+  <Select
+    value={appqueData.desiredLocation}
+    onChange={(value) =>
+      handleAppqueDataChange("desiredLocation", value)
+    }
+    placeholder="Desired Location"
+    showSearch
+    optionFilterProp="children"
+    filterOption={(input, option) =>
+      option.children.toLowerCase().includes(input.toLowerCase())
+    }
+  >
+    <Option value="OnSite">OnSite</Option>
+    <Option value="Remote">Remote</Option>
+  </Select>
+</Form.Item>
+
           </Col>
           <Col span={12}>
             <Form.Item
@@ -349,59 +352,63 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  Are you looking for a full-time position?
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="isFullTimePosition"
-              rules={[
-                {
-                  message: "Please select an option.",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <Radio.Group
-                onChange={(e) =>
-                  handleAppqueDataChange("isFullTimePosition", e.target.value)
-                }
-                value={appqueData.isFullTimePosition}
-              >
-                <Radio value={true}>Yes</Radio>
-                <Radio value={false}>No</Radio>
-              </Radio.Group>
-            </Form.Item>
-          </Col>
+  <Form.Item
+    label={
+      <span>
+        Are you looking for a full-time position?
+        <span className="required-asterisk">*</span>
+      </span>
+    }
+    name="isFullTimePosition"
+    rules={[
+      {
+        required: true,
+        message: "Please select an option.",
+      },
+    ]}
+    labelCol={{ span: 24 }}
+    wrapperCol={{ span: 24 }}
+  >
+    <Radio.Group
+      onChange={(e) =>
+        handleAppqueDataChange("isFullTimePosition", e.target.value)
+      }
+      value={appqueData.isFullTimePosition}
+    >
+      <Radio value={true}>Yes</Radio>
+      <Radio value={false}>No</Radio>
+    </Radio.Group>
+  </Form.Item>
+</Col>
+
           <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  When can you start?
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="startDate"
-              rules={[
-                {
-                  message: "Please select a start date.",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <DatePicker
-                value={selectedDate1}
-                onChange={handleDateChange1}
-                format="DD/MM/YYYY"
-                disabledDate={disabledDate}
-                placeholder="When can you start?"
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
+          <Form.Item
+  label={
+    <span>
+      When can you start?
+      <span className="required-asterisk">*</span>
+    </span>
+  }
+  name="startDate"
+  rules={[
+    {
+      required: true,
+      message: "Please select a start date.",
+    },
+  ]}
+  labelCol={{ span: 24 }}
+  wrapperCol={{ span: 24 }}
+>
+  <DatePicker
+    value={selectedDate1}
+    onChange={handleDateChange1}
+    format="DD/MM/YYYY"
+    disabledDate={disabledDate}
+    placeholder="When can you start?"
+    style={{ width: "100%" }}
+  />
+</Form.Item>
+
           </Col>
 
           <Col span={12}>
@@ -441,34 +448,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
             </Form.Item>
           </Col>
 
-          <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  Are you looking for a full-time permanent position?
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="isFullTimePosition"
-              rules={[
-                {
-                  message: "Please select an option.",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <Radio.Group
-                onChange={(e) =>
-                  handleAppqueDataChange("isFullTimePosition", e.target.checked)
-                }
-                value={appqueData.isFullTimePosition}
-              >
-                <Radio value="Yes">Yes</Radio>
-                <Radio value="No">No</Radio>
-              </Radio.Group>
-            </Form.Item>
-          </Col>
+         
           <Col span={12}>
             <Form.Item
               label={

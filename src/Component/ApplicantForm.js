@@ -55,8 +55,7 @@ const ApplicantForm = () => {
   const [selectedStep, setSelectedStep] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  const [validationError, setValidationError] = useState("");
-  const [phoneNo, setPhoneNo] = useState("");
+  
   const [countryCode, setCountryCode] = useState("+94");
   const [applicantData, setApplicantData] = useState({
     title: "",
@@ -73,7 +72,20 @@ const ApplicantForm = () => {
     permanentAddress: "",
     residentialAddress: "",
   });
-
+  const countryOptions = [
+    { value: "us", label: "United States", code: "+1" },
+    { value: "ca", label: "Canada", code: "+1" },
+    { value: "gb", label: "United Kingdom", code: "+44" },
+    { value: "au", label: "Australia", code: "+61" ,length: 15 },
+    { value: "de", label: "Germany", code: "+49" },
+    { value: "fr", label: "France", code: "+33" },
+    { value: "it", label: "Italy", code: "+39" },
+    { value: "es", label: "Spain", code: "+34" },
+    { value: "mx", label: "Mexico", code: "+52" },
+    { value: "jp", label: "Japan", code: "+81" },
+    { code: "+94", label: "SriLanka", length: 9 },
+    { value: "in", label: "India", code: "+91", length: 10 },
+  ];
   const location = useLocation();
   const jwtToken = location.state ? location.state.token : null;
 
@@ -117,12 +129,9 @@ const ApplicantForm = () => {
     const errors = {};
   
     // Phone number validation
-    const country = countryOptions.find((c) => c.code === countryCode);
-    const length = country ? country.length : 9;
-    const phonePattern = new RegExp(`^\\d{${length}}$`);
-  
-    if (!phonePattern.test(applicantData.phoneNo)) {
-      errors.phoneNo = `Phone number must be ${length} digits long.`;
+    const phoneRegex = /^\+\d{11,15}$/;
+    if (!phoneRegex.test(applicantData.phoneNo)) {
+      errors.phoneNo = "Please enter a valid phone number.";
     }
   
     // Email validation
@@ -164,8 +173,12 @@ const ApplicantForm = () => {
       handleNext();
     } catch (error) {
       console.error("Error creating applicant:", error);
+      notification.error({
+        description: "An error occurred while submitting the form.",
+      });
     }
   };
+  
   
   const [, setIsAcknowledgmentSubmitted] = useState(false);
   const handleAcknowledgmentSubmit = (isSubmitted) => {
@@ -177,22 +190,10 @@ const ApplicantForm = () => {
     "Application Questions",
     "Acknowledgement",
   ];
-  const countryOptions = [
-    { value: "us", label: "United States", code: "+1" },
-    { value: "ca", label: "Canada", code: "+1" },
-    { value: "gb", label: "United Kingdom", code: "+44" },
-    { value: "au", label: "Australia", code: "+61" ,length: 15 },
-    { value: "de", label: "Germany", code: "+49" },
-    { value: "fr", label: "France", code: "+33" },
-    { value: "it", label: "Italy", code: "+39" },
-    { value: "es", label: "Spain", code: "+34" },
-    { value: "mx", label: "Mexico", code: "+52" },
-    { value: "jp", label: "Japan", code: "+81" },
-    { code: "+94", label: "SriLanka", length: 9 },
-    { value: "in", label: "India", code: "+91", length: 10 },
-  ];
   const disabledDate = (current) => {
     const today = moment().startOf("day");
+  
+ 
 
     const minDate = today.clone().subtract(120, "years"); // 120 years ago
     const maxDate = today.clone().subtract(0, "years"); // Today
@@ -200,29 +201,15 @@ const ApplicantForm = () => {
     return current && (current > maxDate || current < minDate);
   };
 
-  const handleCountryCodeChange = (value) => {
-    setCountryCode(value);
-    setPhoneNo("");
-    setValidationError("");
+  
+  const handleApp1queDataChange = (field, value) => {
+    setApplicantData({
+      ...applicantData,
+      [field]: value,
+    });
   };
 
-  const handlePhoneNumberChange = (e) => {
-    const value = e.target.value;
-    const country = countryOptions.find((c) => c.code === countryCode);
-    const length = country ? country.length : 9;
-    const pattern = new RegExp(`^\\d{${length}}$`);
-  
-    setApplicantData((prevData) => ({
-      ...prevData,
-      phoneNo: value
-    }));
-  
-    if (!pattern.test(value)) {
-      setValidationError(`Phone number must be ${length} digits long.`);
-    } else {
-      setValidationError("");
-    }
-  };
+ 
   
 
   return (
@@ -541,61 +528,40 @@ const ApplicantForm = () => {
                             </Form.Item>
                           </Col>
                           <Col span={12}>
-                            <Form>
-                              <Form.Item
-                                label={
-                                  <span>
-                                    Phone Number
-                                    <span className="required-asterisk">*</span>
-                                  </span>
-                                }
-                                name="phoneNo"
-                                required={false}
-                                labelCol={{ span: 24 }}
-                                wrapperCol={{ span: 24 }}
-                              >
-                                <Input.Group compact>
-                                  <Select
-                                    showSearch
-                                    defaultValue={countryCode}
-                                    style={{ width: "30%" }}
-                                    onChange={handleCountryCodeChange}
-                                    filterOption={(input, option) =>
-                                      option.children
-                                        .toString()
-                                        .toLowerCase()
-                                        .includes(input.toLowerCase())
-                                    }
-                                  >
-                                    {countryOptions.map((country) => (
-                                      <Option
-                                        key={country.code}
-                                        value={country.code}
-                                      >
-                                        {country.code} {country.label}
-                                      </Option>
-                                    ))}
-                                  </Select>
-                                  <Input
-                                    type="text"
-                                    id="phoneNo"
-                                    name="phoneNo"
-                                   
-                                    value={applicantData.phoneNo}
-                                    onChange={handlePhoneNumberChange}
-                                  
-                                  
-                                    style={{ width: "70%" }}
-                                  />
-                                </Input.Group>
-                                {validationError && (
-                                  <span style={{ color: "red" }}>
-                                    {validationError}
-                                  </span>
-                                )}
-                              </Form.Item>
-                            </Form>
-                          </Col>
+            <Form.Item
+              label={
+                <span>
+                  Phone Number
+                  <span className="required-asterisk">*</span>
+                </span>
+              }
+              name="phoneNo"
+              rules={[
+                {
+                  message: "Please enter the  phone no.",
+                },
+                {
+                  pattern: /^\+\d{11,15}$/,
+                  message:
+                    "Phone number must start with + .",
+                },
+              ]}
+              labelCol={{ span: 24 }}
+              wrapperCol={{ span: 24 }}
+            >
+              <Input
+                type="tel"
+                 
+                value={applicantData.phoneNo}
+                onChange={(e) =>
+                  handleApp1queDataChange("phoneNo", e.target.value)
+                }
+              
+                placeholder="E.g. +94771473328"
+              />
+            </Form.Item>
+          </Col>
+                        
 
                           <Col span={12}>
                             <Form.Item

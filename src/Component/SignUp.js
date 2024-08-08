@@ -46,6 +46,13 @@ function Signup() {
   }, []);
 
   const handleRegister = async () => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+    if (!emailPattern.test(registrationData.email)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+  
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/Account/register`,
@@ -57,32 +64,51 @@ function Signup() {
           status: registrationData.status,
         }
       );
-
+  
       if (response && response.data) {
         setMessage(response.data.message || "Registration successful");
         setRegistered(true);
+        setRegistrationData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          status: "New",
+        }); // Reset form fields
       } else {
         setMessage("Invalid response from the server");
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        setMessage( (error.response.data.message || "Registration unsuccessful"));
+        setMessage(error.response.data.message || "Registration unsuccessful");
       } else {
         setMessage("An error occurred while making the request");
       }
       setRegistered(false);
     }
   };
+  
 
   const handleConfirmEmail = async () => {};
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+  
+    if (name === "email") {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(value)) {
+        setMessage("Please enter a valid email address.");
+      } else {
+        setMessage("");
+      }
+    }
+  
     setRegistrationData({
       ...registrationData,
       [name]: value,
     });
   };
+  
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -147,55 +173,90 @@ function Signup() {
                   (window.location.href = "/")
                 ) : (
                   <div>
-                    <input
-                      className="form-control mb-4"
-                      name="firstName"
-                      placeholder="First name"
-                      type="text"
-                      value={registrationData.firstName}
-                      onChange={handleInputChange}
-                      style={{ color: "black" }}
-                    />
-                    <input
-                      className="form-control mb-4"
-                      name="lastName"
-                      placeholder="Last name"
-                      type="text"
-                      value={registrationData.lastName}
-                      onChange={handleInputChange}
-                      style={{ color: "black" }}
-                    />
-                    <input
-                      className="form-control mb-4"
-                      name="email"
-                      placeholder="Email"
-                      type="email"
-                      value={registrationData.email}
-                      onChange={handleInputChange}
-                      style={{ color: "black" }}
-                    />
-                    <div className="input-group mb-4">
+                    <div className="mb-4">
+                      <label htmlFor="firstName" style={{ color: "white" }}>
+                        First name
+                      </label>
                       <input
+                        id="firstName"
+                        className="form-control"
+                        name="firstName"
+                        placeholder="First name"
+                        type="text"
+                        value={registrationData.firstName}
+                        onChange={handleInputChange}
+                        style={{ color: "black" }}
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label htmlFor="lastName" style={{ color: "white" }}>
+                        Last name
+                      </label>
+                      <input
+                        id="lastName"
+                        className="form-control"
+                        name="lastName"
+                        placeholder="Last name"
+                        type="text"
+                        value={registrationData.lastName}
+                        onChange={handleInputChange}
+                        style={{ color: "black" }}
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label htmlFor="email" style={{ color: "white" }}>
+                        Email
+                      </label>
+                      <input
+                        id="email"
+                        className="form-control"
+                        name="email"
+                        placeholder="Email"
+                        type="email"
+                        value={registrationData.email}
+                        onChange={handleInputChange}
+                        style={{ color: "black" }}
+                      />
+                    </div>
+
+                    <div className="mb-4" style={{ position: "relative" }}>
+                      <label htmlFor="password" style={{ color: "white" }}>
+                        Password
+                      </label>
+                      <input
+                        id="password"
                         className="form-control"
                         name="password"
                         placeholder="Password"
                         type={passwordVisible ? "text" : "password"}
                         value={registrationData.password}
                         onChange={handleInputChange}
-                        style={{ paddingRight: "40px" }}
+                        style={{ paddingRight: "40px", zIndex: 1 }}
                       />
                       <span
                         className="input-group-text"
                         onClick={togglePasswordVisibility}
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          cursor: "pointer",
+                          position: "absolute",
+                          right: "10px",
+                          top: "70%",
+                          transform: "translateY(-50%)",
+                          zIndex: 2,
+                          padding: "0.375rem 0.75rem", // Adjust padding for better alignment
+                          backgroundColor: "transparent", // Ensure there's no background
+                          border: "none", // Remove border for a cleaner look
+                          
+                        }}
                       >
                         <i
-                          className={
-                            passwordVisible ? "fas fa-eye" : "fas fa-eye-slash"
-                          }
+                          className={passwordVisible ? "fas fa-eye" : "fas fa-eye-slash"}
                         ></i>
                       </span>
                     </div>
+
                     <button className="btn btn-primary" onClick={handleRegister}>
                       Register
                     </button>

@@ -133,28 +133,40 @@ function Login() {
                 />
 
                 <label style={{ color: "white" }}>Password:</label>
-                <div className="input-group mb-4">
-                  <input
-                    className="form-control"
-                    placeholder="Password"
-                    id="formControlLg"
-                    type={passwordVisible ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{ color: "#105CAA" }}
-                  />
-                  <span
-                    className="input-group-text"
-                    onClick={togglePasswordVisibility}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <i
-                      className={
-                        passwordVisible ? "fas fa-eye" : "fas fa-eye-slash"
-                      }
-                    ></i>
-                  </span>
-                </div>
+                <div className="input-group mb-4" style={{ position: "relative", display: "flex", alignItems: "center" }}>
+  <input
+    className="form-control"
+    placeholder="Password"
+    id="formControlLg"
+    type={passwordVisible ? "text" : "password"}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    style={{
+      color: "#105CAA",
+      paddingRight: "40px",  // Ensure space for the eye icon
+      zIndex: 1,  // Ensure the input stays below the icon
+    }}
+  />
+  <span
+    onClick={togglePasswordVisibility}
+    style={{
+      position: "absolute",
+      right: "10px",  // Position icon inside the input field
+      top: "50%",  // Vertically center the icon
+      transform: "translateY(-50%)",  // Adjust vertical position
+      cursor: "pointer",
+      zIndex: 2,  // Ensure the icon stays on top of the input field
+      color: "#105CAA",
+    }}
+  >
+    <i className={passwordVisible ? "fas fa-eye" : "fas fa-eye-slash"}></i>
+  </span>
+</div>
+
+
+
+
+
 
                 <button className="btn btn-primary" onClick={handleLogin}>
                   Login
