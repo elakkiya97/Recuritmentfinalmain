@@ -38,7 +38,17 @@ function Login() {
   const [error, setError] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleLogin = async () => {
+    if (!validateEmail(username)) {
+      setError("Invalid email format. Please enter a valid email address.");
+      return;
+    }
+
     try {
       const response = await axios.post(`${API_BASE_URL}/api/Account/login`, {
         UserName: username,
@@ -63,16 +73,15 @@ function Login() {
       setError("Login failed. Please check your credentials.");
     }
   };
-  //Signup
+
   const HandleSignup = (e) => {
     e.preventDefault();
     navigate("/Signup");
   };
-  //ForgotPassword
+
   const HandleForgotPassword = (e) => {
     e.preventDefault();
     navigate("/ForgotPassword");
-    //Implemetn Forgot Password here
   };
 
   const togglePasswordVisibility = () => {

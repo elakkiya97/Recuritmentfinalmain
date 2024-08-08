@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import axios from "axios";
 import "./login.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -11,10 +10,8 @@ import {
   MDBCardBody,
   MDBCardImage,
   MDBRow,
-  MDBInput,
   MDBCol,
 } from "mdb-react-ui-kit";
-import { Toast } from "bootstrap";
 
 const imageStyle = {
   display: "block",
@@ -35,7 +32,6 @@ const API_BASE_URL = "https://recruitmentapi.iykons.com";
 function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const navigate = useNavigate();
 
   const handleForgot = async () => {
     // alert(email);
@@ -43,7 +39,7 @@ function ForgotPassword() {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/api/Account/forgot-username-or-password/${email}`,
+        `${API_BASE_URL}/api/Account/forgot-username-or-password/${email}`
       );
 
       if (response && response.data) {

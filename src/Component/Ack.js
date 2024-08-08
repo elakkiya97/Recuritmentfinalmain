@@ -149,7 +149,11 @@ const Acknolege = ({
 
           <div
             className="col-md-12"
-            style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "20px",
+            }}
           >
             {currentStep > 0 && (
               <Button
