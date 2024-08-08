@@ -10,7 +10,7 @@ const API_BASE_URL = "https://recruitmentapi.iykons.com";
 const { Option } = Select;
 
 const Job = ({ handleNext, handleBack, currentStep }) => {
-  const [form] = Form.useForm(); //
+  const [form1] = Form.useForm(); //
   const [softSkill, setSoftSkill] = useState([]);
   const [hardSkill, setHardSkill] = useState([]);
   const [additionalKnownLanguages, setLanguage] = useState([]);
@@ -51,6 +51,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
       ...prevData,
       [fieldName]: value,
     }));
+    
   };
 
   const handleChangeEducationDTO = (fieldName, value) => {
@@ -80,9 +81,22 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
 
   const location = useLocation();
   const jwtToken = location.state ? location.state.token : null;
+
   const handleSubmit2 = async () => {
     try {
-      const values = await form.validateFields();
+      await form1.validateFields();
+    } catch(error){
+      const errors = error.errorFields.reduce((acc, field) => {
+        acc[field.name[0]] = field.errors[0];
+        return acc;
+      }, {});
+
+      notification.error({
+        description: Object.values(errors).join(", "),
+      });
+      return;
+    }
+      try{
       await axios.post(
         `${API_BASE_URL}/api/Education/app`,
         {
@@ -127,6 +141,16 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
   ];
 
   const [departmentOptions, setDepartmentOptions] = useState([]);
+
+
+  useEffect(() => {
+    // Set form values when state changes
+    form1.setFieldsValue({
+      ...formState.educationDTO,
+      additionalQualification: ExperienceData.additionalQualification,
+      motherLanguage: ExperienceData.motherLanguage,
+    });
+  }, [formState, ExperienceData, form1]);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -192,16 +216,28 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
   }, []);
 
   console.log(departmentUserDTO);
-
+  const customizeRequiredMark = (label, required) => (
+    <>
+      {label}
+      {required && <span style={{ color: "red" }}>*</span>}
+    </>
+  );
   return (
-    <div className="container" style={{ marginTop: "60px" }}>
-      <Row gutter={[24, 24]}>
+    
+    <div className="container" style={{ marginTop: "0px" }}> <Form
+    form={form1}
+    requiredMark={(label, { required }) =>
+      customizeRequiredMark(label, required)
+    }initialValues={{ remember: true }}
+  >
+      <Row gutter={[24]}>
         <Col span={12}>
+        
           <Form.Item
             label={
               <span>
                 Current Status
-                <span className="required-asterisk">*</span>
+               
               </span>
             }
             name="currentstatus"
@@ -211,14 +247,14 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please select the current status.",
               },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
             <Select
               id="currentstatus"
-              name="currentstatus"
-              value={educationDTO.currentStatus}
+              name="currentStatus"
+              value={formState.educationDTO.currentStatus}
               onChange={(value) =>
                 handleChangeEducationDTO("currentStatus", value)
               }
@@ -239,7 +275,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Qualification
-                <span className="required-asterisk">*</span>
+                
               </span>
             }
             name="qulification"
@@ -249,14 +285,14 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please select the qualification.",
               },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
             <Select
               id="qulification"
               name="qulification"
-              value={educationDTO.qualification}
+              value={formState.educationDTO.qualification}
               onChange={(value) =>
                 handleChangeEducationDTO("qualification", value)
               }
@@ -279,7 +315,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Field Of Study
-                <span className="required-asterisk">*</span>
+               
               </span>
             }
             name="fieldOfStudy"
@@ -289,7 +325,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please select the field of study.",
               },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -325,7 +361,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Insitute Name
-                <span className="required-asterisk">*</span>
+              
               </span>
             }
             name="insituteName"
@@ -335,7 +371,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please enter the institute name.",
               },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -357,7 +393,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Year Attained
-                <span className="required-asterisk">*</span>
+                
               </span>
             }
             name="yearAttained"
@@ -371,7 +407,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Phone number must contain only digits.",
               },
             ]}
-            required={false}
+          
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -393,7 +429,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Additional Qualification
-                <span className="required-asterisk">*</span>
+              
               </span>
             }
             name="additionalQualification"
@@ -403,7 +439,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please enter the additional qualification.",
               },
             ]}
-            required={false}
+         
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -428,14 +464,14 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Mother Language
-                <span className="required-asterisk">*</span>
+               {/* <span className="required-asterisk">*</span> */}
               </span>
             }
             name="motherLanguage"
             rules={[
               { required: true, message: "Please enter the mother language." },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -457,7 +493,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Additional Known Languages
-                <span className="required-asterisk">*</span>
+               {/* <span className="required-asterisk">*</span> */}
               </span>
             }
             name="additionalKnownLanguages"
@@ -467,7 +503,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 message: "Please select the additional languages.",
               },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -499,14 +535,14 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
             label={
               <span>
                 Soft Skills
-                <span className="required-asterisk">*</span>
+               {/* <span className="required-asterisk">*</span> */}
               </span>
             }
             name="softSkills"
             rules={[
               { required: true, message: "Please select the soft skills." },
             ]}
-            required={false}
+           
             labelCol={{ span: 24 }}
             wrapperCol={{ span: 24 }}
           >
@@ -540,14 +576,14 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
     label={
       <span>
         Hard Skills
-        <span className="required-asterisk">*</span>
+       {/* <span className="required-asterisk">*</span> */}
       </span>
     }
     name="hardSkills"
     rules={[
       { required: true, message: "Please select the hard skills." },
     ]}
-    required={false}
+   
     labelCol={{ span: 24 }}
     wrapperCol={{ span: 24 }}
   >
@@ -595,7 +631,9 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
           )}
         </div>
       </Row>
+      </Form>
     </div>
+    
   );
 };
 

@@ -26,7 +26,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
     uploadedFile: "",
   });
   const dynamicPath = `users/files`;
-
+  const [form] = Form.useForm();
   const [appqueData, setappQudata] = useState({
     desiredLocation: "",
     isFullTimePosition: true,
@@ -106,21 +106,16 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
 
   const handleSubmit4 = async (e) => {
     e.preventDefault();
-    const errors = {};
-  
-    if (!formData.uploadedFile) {
-      errors.cvFile = "Please upload your CV file.";
-    }
-    if (!Object.values(appqueData).every((value) => value) || !selectedDate1) {
-      errors.common = "Please fill in all fields.";
-    }
-    if (!Object.values(app1queData).every((value) => value)) {
-      errors.common = "Please fill in all fields.";
-    }
-  
-    if (Object.keys(errors).length > 0) {
+    try {
+      await form.validateFields();
+    } catch (error) {
+      const errors = error.errorFields.reduce((acc, field) => {
+        acc[field.name[0]] = field.errors[0];
+        return acc;
+      }, {});
+
       notification.error({
-        description: errors.common || errors.cvFile,
+        description: Object.values(errors).join(", "),
       });
       return;
     }
@@ -184,9 +179,19 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
     // Can not select days before today
     return current && current < moment().startOf("day");
   };
-
+  const customizeRequiredMark = (label, required) => (
+    <>
+      {label}
+      {required && <span style={{ color: "red" }}>*</span>}
+    </>
+  );
   return (
-    <Form>
+    <Form
+    form={form}
+    requiredMark={(label, { required }) =>
+      customizeRequiredMark(label, required)
+    }
+  >
       <div className="container" style={{ marginTop: "60px" }}>
         <Row gutter={[24, 16]}>
           <Col span={12}>
@@ -194,12 +199,12 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   Referee Name
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="refereename"
               rules={[
-                {
+                {required: true,
                   message: "Please enter the referee name.",
                 },
                 {
@@ -225,12 +230,13 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   Referee Phone No
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="refereephoneNo"
               rules={[
                 {
+                  required: true,
                   message: "Please enter the referee phone no.",
                 },
                 {
@@ -258,12 +264,13 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   Referee Address
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="refereeAddress"
               rules={[
                 {
+                  required: true,
                   message: "Please enter the referee address.",
                 },
               ]}
@@ -286,7 +293,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
   label={
     <span>
       Desired Location
-      <span className="required-asterisk">*</span>
+      
     </span>
   }
   name="desiredLocation"
@@ -322,13 +329,14 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   Where did you hear this opportunity?
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="source"
               rules={[
                 {
                   message: "Please select an option.",
+                  required: true,
                 },
               ]}
               labelCol={{ span: 24 }}
@@ -356,7 +364,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
     label={
       <span>
         Are you looking for a full-time position?
-        <span className="required-asterisk">*</span>
+        
       </span>
     }
     name="isFullTimePosition"
@@ -386,7 +394,7 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
   label={
     <span>
       When can you start?
-      <span className="required-asterisk">*</span>
+      
     </span>
   }
   name="startDate"
@@ -416,12 +424,13 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   What is your preferred method of contact?
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="preferredContactMethod"
               rules={[
                 {
+                  required: true,
                   message: "Please select your preferred method of contact.",
                 },
               ]}
@@ -454,12 +463,13 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
               label={
                 <span>
                   Category
-                  <span className="required-asterisk">*</span>
+                  
                 </span>
               }
               name="positionName"
               rules={[
                 {
+                  required: true,
                   message: "Please select a category.",
                 },
               ]}
@@ -485,30 +495,28 @@ const AppQues = ({ handleNext, handleBack, currentStep }) => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  Upload CV
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="uploadedFile"
-              rules={[
-                {
-                  message: "Please upload your CV file.",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <S3Upload
-                name="uploadedFile"
-                setFormData={(name, value) =>
-                  setFormData({ ...formData, [name]: value })
-                }
-                dynamicPath={dynamicPath}
-              />
-            </Form.Item>
+          <Form.Item
+  label={<span>Upload CV</span>}
+  name="uploadedFile"
+  rules={[
+    {
+      required: true,
+      message: "Please upload your CV file.",
+    },
+  ]}
+  labelCol={{ span: 24 }}
+  wrapperCol={{ span: 24 }}
+>
+  <S3Upload
+    name="uploadedFile"
+    setFormData={(name, value) => {
+      setFormData({ ...formData, [name]: value });
+      form.setFieldsValue({ uploadedFile: value }); // Update form value
+    }}
+    dynamicPath={dynamicPath}
+  />
+</Form.Item>
+
           </Col>
         </Row>
       </div>

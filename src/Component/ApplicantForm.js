@@ -55,8 +55,8 @@ const ApplicantForm = () => {
   const [selectedStep, setSelectedStep] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
+
   
-  const [countryCode, setCountryCode] = useState("+94");
   const [applicantData, setApplicantData] = useState({
     title: "",
     dob: "22/09/2023",
@@ -76,7 +76,7 @@ const ApplicantForm = () => {
     { value: "us", label: "United States", code: "+1" },
     { value: "ca", label: "Canada", code: "+1" },
     { value: "gb", label: "United Kingdom", code: "+44" },
-    { value: "au", label: "Australia", code: "+61" ,length: 15 },
+    { value: "au", label: "Australia", code: "+61", length: 15 },
     { value: "de", label: "Germany", code: "+49" },
     { value: "fr", label: "France", code: "+33" },
     { value: "it", label: "Italy", code: "+39" },
@@ -89,6 +89,20 @@ const ApplicantForm = () => {
   const location = useLocation();
   const jwtToken = location.state ? location.state.token : null;
 
+
+   const [formValues, setFormValues] = useState({
+    // Initialize with empty or default values
+    desiredLocation: '',
+    isFullTimePosition: true,
+    startDate: null,
+    source: '',
+    preferredContactMethod: '',
+    refereename: '',
+    refereephoneNo: '',
+    refereeAddress: '',
+    uploadedFile: null,
+    positionName: ''
+  });
   const handleChange = (name, value) => {
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
@@ -125,61 +139,36 @@ const ApplicantForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const errors = {};
-  
-    // Phone number validation
-    const phoneRegex = /^\+\d{11,15}$/;
-    if (!phoneRegex.test(applicantData.phoneNo)) {
-      errors.phoneNo = "Please enter a valid phone number.";
-    }
-  
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(applicantData.email)) {
-      errors.email = "Please enter a valid email address.";
-    }
-  
-    // Check if all fields are filled
-    if (!Object.values(applicantData).every((value) => value)) {
-      errors.common = "Please fill in all fields.";
-    }
-  
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-  
+
+    try {
+      await form.validateFields();
+    } catch (error) {
+      const errors = error.errorFields.reduce((acc, field) => {
+        acc[field.name[0]] = field.errors[0];
+        return acc;
+      }, {});
+
       notification.error({
         description: Object.values(errors).join(", "),
       });
       return;
     }
-  
-    try {
-      await form.validateFields();
-    } catch (error) {
-      notification.error({
-        description: error.message,
-      });
-      return;
-    }
-  
+
     try {
       await axios.post(`${API_BASE_URL}/api/Applicant/App`, applicantData, {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
       });
-  
+
       handleNext();
     } catch (error) {
-      console.error("Error creating applicant:", error);
       notification.error({
-        description: "An error occurred while submitting the form.",
+        description: error.message,
       });
     }
   };
-  
-  
+
   const [, setIsAcknowledgmentSubmitted] = useState(false);
   const handleAcknowledgmentSubmit = (isSubmitted) => {
     setIsAcknowledgmentSubmitted(isSubmitted);
@@ -192,8 +181,6 @@ const ApplicantForm = () => {
   ];
   const disabledDate = (current) => {
     const today = moment().startOf("day");
-  
- 
 
     const minDate = today.clone().subtract(120, "years"); // 120 years ago
     const maxDate = today.clone().subtract(0, "years"); // Today
@@ -201,16 +188,18 @@ const ApplicantForm = () => {
     return current && (current > maxDate || current < minDate);
   };
 
-  
   const handleApp1queDataChange = (field, value) => {
     setApplicantData({
       ...applicantData,
       [field]: value,
     });
   };
-
- 
-  
+  const customizeRequiredMark = (label, required) => (
+    <>
+      {label}
+      {required && <span style={{ color: "red" }}>*</span>}
+    </>
+  );
 
   return (
     <div className="applicant-form-page" style={applicantFormStyle}>
@@ -286,7 +275,12 @@ const ApplicantForm = () => {
                     ))}
                   </ul>
 
-                  <Form method="post">
+                  <Form
+                    form={form}
+                    requiredMark={(label, { required }) =>
+                      customizeRequiredMark(label, required)
+                    }
+                  >
                     {currentStep === 0 && (
                       <div className="container" style={{ marginTop: "30px" }}>
                         <Row gutter={[16]}>
@@ -295,12 +289,14 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Title
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span >*</span> */}
                                 </span>
                               }
                               name="title"
+                              className="required-asterisk"
                               rules={[
                                 {
+                                  required: true,
                                   message: "Please select a title.",
                                 },
                               ]}
@@ -333,7 +329,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   First Name
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="firstName"
@@ -343,12 +339,12 @@ const ApplicantForm = () => {
                                   message: "Please enter your first name.",
                                 },
                                 {
-                                  pattern: "^[a-zA-Z]+$",
+                                  pattern: /^[a-zA-Z]+$/,
                                   message:
                                     "Only letters (a-z, A-Z) are allowed.",
                                 },
                               ]}
-                              required={false}
+                              //// required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -375,7 +371,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Last Name
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="lastName"
@@ -390,7 +386,7 @@ const ApplicantForm = () => {
                                     "Only letters (a-z, A-Z) are allowed.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -417,7 +413,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Email
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="email"
@@ -432,7 +428,7 @@ const ApplicantForm = () => {
                                     "Please enter a valid email address.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -459,7 +455,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Gender
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="gender"
@@ -469,7 +465,7 @@ const ApplicantForm = () => {
                                   message: "Please select your gender.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -496,7 +492,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   DOB
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="dob"
@@ -506,7 +502,7 @@ const ApplicantForm = () => {
                                   message: "Please select your date of birth.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -528,52 +524,53 @@ const ApplicantForm = () => {
                             </Form.Item>
                           </Col>
                           <Col span={12}>
-            <Form.Item
-              label={
-                <span>
-                  Phone Number
-                  <span className="required-asterisk">*</span>
-                </span>
-              }
-              name="phoneNo"
-              rules={[
-                {
-                  message: "Please enter the  phone no.",
-                },
-                {
-                  pattern: /^\+\d{11,15}$/,
-                  message:
-                    "Phone number must start with + .",
-                },
-              ]}
-              labelCol={{ span: 24 }}
-              wrapperCol={{ span: 24 }}
-            >
-              <Input
-                type="tel"
-                 
-                value={applicantData.phoneNo}
-                onChange={(e) =>
-                  handleApp1queDataChange("phoneNo", e.target.value)
-                }
-              
-                placeholder="E.g. +94771473328"
-              />
-            </Form.Item>
-          </Col>
-                        
+                            <Form.Item
+                              label={
+                                <span>
+                                  Phone Number
+                                  {/* <span className="required-asterisk">*</span> */}
+                                </span>
+                              }
+                              name="phoneNo"
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Please enter the  phone no.",
+                                },
+                                {
+                                  pattern: /^\+\d{11,15}$/,
+                                  message: "Phone number must start with + .",
+                                },
+                              ]}
+                              labelCol={{ span: 24 }}
+                              wrapperCol={{ span: 24 }}
+                            >
+                              <Input
+                                type="tel"
+                                value={applicantData.phoneNo}
+                                onChange={(e) =>
+                                  handleApp1queDataChange(
+                                    "phoneNo",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="E.g. +94771473328"
+                              />
+                            </Form.Item>
+                          </Col>
 
                           <Col span={12}>
                             <Form.Item
                               label={
                                 <span>
                                   Country
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="country"
                               rules={[
                                 {
+                                  required: true,
                                   message:
                                     "Only letters (a-z, A-Z) are allowed.",
                                 },
@@ -619,7 +616,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   State / Province
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="state"
@@ -634,7 +631,7 @@ const ApplicantForm = () => {
                                     "Only letters (a-z, A-Z) are allowed.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -661,7 +658,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   City
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="city"
@@ -676,7 +673,7 @@ const ApplicantForm = () => {
                                     "Only letters (a-z, A-Z) are allowed.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -703,7 +700,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Street
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="street"
@@ -713,7 +710,7 @@ const ApplicantForm = () => {
                                   message: "Please enter your street.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -740,7 +737,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Postal Code
-                                  <span className="required-asterisk">*</span>
+                                  {/* <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="zip"
@@ -750,7 +747,7 @@ const ApplicantForm = () => {
                                   message: "Please enter your postal code.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -777,7 +774,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Permanent Address
-                                  <span className="required-asterisk">*</span>
+                                  {/* // //   <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="permanentAddress"
@@ -788,7 +785,7 @@ const ApplicantForm = () => {
                                     "Please enter your permanent address.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -818,7 +815,7 @@ const ApplicantForm = () => {
                               label={
                                 <span>
                                   Residential Address
-                                  <span className="required-asterisk">*</span>
+                                  {/* // //   <span className="required-asterisk">*</span> */}
                                 </span>
                               }
                               name="residentialAddress"
@@ -829,7 +826,7 @@ const ApplicantForm = () => {
                                     "Please enter your residential address.",
                                 },
                               ]}
-                              required={false}
+                              // required={false}
                               labelCol={{ span: 24 }}
                               wrapperCol={{ span: 24 }}
                             >
@@ -881,11 +878,14 @@ const ApplicantForm = () => {
                         </Row>
                       </div>
                     )}
+                      </Form>
                     {currentStep === 1 && (
+                      
                       <Job
                         handleNext={handleNext}
                         handleBack={handleBack}
                         currentStep={currentStep}
+                        
                       />
                     )}
                     {currentStep === 2 && (
@@ -893,6 +893,7 @@ const ApplicantForm = () => {
                         handleNext={handleNext}
                         handleBack={handleBack}
                         currentStep={currentStep}
+                        formValues={formValues}
                       />
                     )}
 
@@ -905,8 +906,9 @@ const ApplicantForm = () => {
                         handleAcknowledgmentSubmit={handleAcknowledgmentSubmit}
                       />
                     )}
-                  </Form>
+                
                 </div>
+                
               </MDBCol>
             </MDBRow>
           </MDBCard>
