@@ -409,10 +409,11 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
                 required: true,
                 message: "Please enter year of attained.",
               },
-              {
-                pattern: /^[0-9]+$/,
-                message: "Phone number must contain only digits.",
-              },
+              
+                {
+                  pattern: /^[0-9]{4,8}$/,
+                  message: "yearAttained must be a number between 4 and 8 digits.",
+                },
             ]}
           
             labelCol={{ span: 24 }}

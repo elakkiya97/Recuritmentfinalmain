@@ -15,6 +15,7 @@ import Accept from "./Component/Dashboard/AcceptResume"
 import Approve from "./Component/Dashboard/ApprovedResume"
 import Reject from "./Component/Dashboard/RejectResume"
 import ForgotPassword from "./Component/ForgotPassword"
+import ResetPassword from './Component/ResetPassword';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="/accept" element={<Accept />} />
         <Route path="/approve" element={<Approve />} />
         <Route path="/reject" element={<Reject />} />
+        <Route path="/account/reset-password" element={<ResetPassword />} />
 
       </Routes>
     </BrowserRouter>

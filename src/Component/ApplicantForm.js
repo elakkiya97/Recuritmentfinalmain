@@ -83,7 +83,7 @@ const ApplicantForm = () => {
     { value: "es", label: "Spain", code: "+34" },
     { value: "mx", label: "Mexico", code: "+52" },
     { value: "jp", label: "Japan", code: "+81" },
-    { code: "+94", label: "SriLanka", length: 9 },
+    { value: "sr", label: "SriLanka", length: 9 },
     { value: "in", label: "India", code: "+91", length: 10 },
   ];
   const location = useLocation();
@@ -539,7 +539,7 @@ const ApplicantForm = () => {
                                 },
                                 {
                                   pattern: /^\+\d{11,15}$/,
-                                  message: "Phone number must start with + .",
+                                  message: "Please enter correct phoneno",
                                 },
                               ]}
                               labelCol={{ span: 24 }}
@@ -560,57 +560,49 @@ const ApplicantForm = () => {
                           </Col>
 
                           <Col span={12}>
-                            <Form.Item
-                              label={
-                                <span>
-                                  Country
-                                  {/* <span className="required-asterisk">*</span> */}
-                                </span>
-                              }
-                              name="country"
-                              rules={[
-                                {
-                                  required: true,
-                                  message:
-                                    "Only letters (a-z, A-Z) are allowed.",
-                                },
-                              ]}
-                              labelCol={{ span: 24 }}
-                              wrapperCol={{ span: 24 }}
-                            >
-                              <Select
-                                id="country"
-                                name="country"
-                                value={applicantData.country}
-                                onChange={(value) =>
-                                  handleChange("country", value)
-                                }
-                                placeholder="Select a country"
-                                style={{ width: "100%" }}
-                                showSearch
-                                optionFilterProp="children"
-                                filterOption={(input, option) =>
-                                  option.children
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase())
-                                }
-                              >
-                                {countryOptions.map((country) => (
-                                  <Option
-                                    key={country.value}
-                                    value={country.value}
-                                  >
-                                    {country.label}
-                                  </Option>
-                                ))}
-                              </Select>
-                              {validationErrors.country && (
-                                <span style={{ color: "red" }}>
-                                  {validationErrors.country}
-                                </span>
-                              )}
-                            </Form.Item>
-                          </Col>
+  <Form.Item
+    label={
+      <span>
+        Country
+        {/* <span className="required-asterisk">*</span> */}
+      </span>
+    }
+    name="country"
+    rules={[
+      {
+        required: true,
+        message: "Please select a country.",
+      },
+    ]}
+    labelCol={{ span: 24 }}
+    wrapperCol={{ span: 24 }}
+  >
+    <Select
+      id="country"
+      name="country"
+      value={applicantData.country}
+      onChange={(value) => handleChange("country", value)}
+      placeholder="Select a country"
+      style={{ width: "100%" }}
+      showSearch
+      optionFilterProp="children"
+      filterOption={(input, option) =>
+        option.children.toLowerCase().includes(input.toLowerCase())
+      }
+    >
+      {countryOptions.map((country) => (
+        <Option key={country.value} value={country.value}>
+          {country.label}
+        </Option>
+      ))}
+    </Select>
+    {validationErrors.country && (
+      <span style={{ color: "red" }}>{validationErrors.country}</span>
+    )}
+  </Form.Item>
+</Col>
+
+
                           <Col span={12}>
                             <Form.Item
                               label={
@@ -745,6 +737,15 @@ const ApplicantForm = () => {
                                 {
                                   required: true,
                                   message: "Please enter your postal code.",
+                                },
+                                {
+                                  min: 2,
+                                  max: 10,
+                                  message: "Postal code must be between 2 and 10 characters.",
+                                },
+                                {
+                                  pattern: /^[a-zA-Z0-9]*$/,
+                                  message: "Postal code can only contain letters and numbers.",
                                 },
                               ]}
                               // required={false}

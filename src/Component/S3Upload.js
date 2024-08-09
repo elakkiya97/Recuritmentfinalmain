@@ -5,7 +5,6 @@ import { DeleteOutlined, EyeOutlined } from '@ant-design/icons'
 import { ReactComponent as PDFImage } from '../assets/Svg/Pdf.svg'
 import { ReactComponent as ExcelImage } from '../assets/Svg/excel.svg'
 
-
 const S3Upload = (props) => {
   const { name, setFormData, dynamicPath } = props
   const [uploadedFileUrl, setUploadedFileUrl] = useState("")
@@ -33,10 +32,16 @@ const S3Upload = (props) => {
     }
   }
 
-  const handleRemove = () => {
-    setFormData(name, "")
-    setUploadedFileUrl("")
-  }
+  const handleRemove = (e) => {
+    if (e) {
+      e.preventDefault();       // Prevent default action
+      e.stopPropagation();      // Stop event from propagating to other elements
+    }
+  
+    // Reset state and form data
+    setFormData(name, "");
+    setUploadedFileUrl("");
+  };
 
   const handleDownload = (url) => {
     const link = document.createElement('a')
@@ -52,47 +57,43 @@ const S3Upload = (props) => {
 
   return (
     <Upload
-      accept=".png,.jpeg,.jpg,.pdf,.doc,.xlsx,.csv"
-      beforeUpload={handleBeforeUpload}
-      onChange={(info) => {
-        const isAllowedFileType = ["application/pdf", "image/jpeg", "image/png", "image/jpg"].includes(info.file.type)
-        if (!isAllowedFileType) {
-        
-          return Upload.LIST_IGNORE
+    accept=".png,.jpeg,.jpg,.pdf,.doc,.xlsx,.csv"
+    beforeUpload={handleBeforeUpload}
+    onChange={(info) => {
+      const isAllowedFileType = ["application/pdf", "image/jpeg", "image/png", "image/jpg"].includes(info.file.type);
+      if (!isAllowedFileType) {
+        return Upload.LIST_IGNORE;
+      }
+      fileOnChange(info.file, name);
+      return false;
+    }}
+    maxCount={1}
+    showUploadList={false} // Disable the default upload list
+    defaultFileList={[]}
+  >
+    <Button>Choose File</Button>
+    {isLoading && <Spin />}
+    {uploadedFileUrl && (
+      <Card
+        style={{ width: 200, marginTop: 16 }}
+        cover={
+          fileExtension === 'pdf' ? (
+            <PDFImage width={200} height={200} style={{ cursor: 'pointer' }} />
+          ) : fileExtension === 'xlsx' || fileExtension === 'csv' ? (
+            <ExcelImage width={200} height={200} style={{ cursor: 'pointer' }} />
+          ) : (
+            <Image width={200} height={200} src={uploadedFileUrl} />
+          )
         }
-        fileOnChange(info.file, name)
-        return false
-      }}
-      maxCount={1}
-      showUploadList={{
-        showRemoveIcon: false,
-        showPreviewIcon: false,
-      }}
-      defaultFileList={[]}
-    >
-      <Button>Choose File</Button>
-      {isLoading && <Spin />}
-      {uploadedFileUrl && (
-        <Card
-          style={{ width: 200, marginTop: 16 }}
-          cover={
-            fileExtension === 'pdf' ? (
-              <PDFImage width={200} height={200} style={{ cursor: 'pointer' }} />
-            ) : fileExtension === 'xlsx' || fileExtension === 'csv' ? (
-              <ExcelImage width={200} height={200} style={{ cursor: 'pointer' }} />
-            ) : (
-              <Image width={200} height={200} src={uploadedFileUrl} />
-            )
-          }
-          actions={[
-            <DeleteOutlined key="delete" onClick={handleRemove} />,
-            <Tooltip key="view" title="View and Download">
-              <EyeOutlined onClick={() => handleDownload(uploadedFileUrl)} />
-            </Tooltip>
-          ]}
-        />
-      )}
-    </Upload>
+        actions={[
+          <DeleteOutlined key="delete" onClick={(e) => handleRemove(e)} />,
+          <Tooltip key="view" title="View and Download">
+            <EyeOutlined onClick={(e) => { e.preventDefault(); handleDownload(uploadedFileUrl); }} />
+          </Tooltip>
+        ]}
+      />
+    )}
+  </Upload>
   )
 }
 
