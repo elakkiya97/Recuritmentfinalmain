@@ -18,7 +18,7 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
     motherLanguage: "",
     additionalQualification: "",
   });
-  const [formState, setFormState] = useState({
+  const [formState] = useState({
     educationDTO: {
       currentStatus: "",
       qualification: "",
@@ -96,18 +96,25 @@ const Job = ({ handleNext, handleBack, currentStep }) => {
       });
       return;
     }
+    const combinedData = {
+      skillUserDTO: {
+        softSkill,
+        hardSkill,
+        language: additionalKnownLanguages,
+      },
+      educationDTO,
+      departmentUserDTO,
+      additionalQualification: ExperienceData.additionalQualification,
+      motherLanguage: ExperienceData.motherLanguage,
+    };
+  
+    // Log the combined data to check if it is set correctly
+    console.log("Combined Data:", combinedData);
+  
       try{
       await axios.post(
         `${API_BASE_URL}/api/Education/app`,
-        {
-          skillUserDTO: {
-            softSkill,
-            hardSkill,
-            language: additionalKnownLanguages,
-          },
-          educationDTO,
-          departmentUserDTO,
-        },
+        combinedData ,
         {
           headers: {
             Authorization: `Bearer ${jwtToken}`,

@@ -90,7 +90,7 @@ const ApplicantForm = () => {
   const jwtToken = location.state ? location.state.token : null;
 
 
-   const [formValues, setFormValues] = useState({
+   const [formValues] = useState({
     // Initialize with empty or default values
     desiredLocation: '',
     isFullTimePosition: true,
